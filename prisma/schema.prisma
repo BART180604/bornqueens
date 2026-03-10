@@ -1,0 +1,204 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
+// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
+
+generator client {
+  provider = "prisma-client-js"
+  output   = "../src/generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+enum Role {
+  VISITOR
+  CONTRIBUTOR
+  ADMIN
+}
+
+enum Status {
+  DRAFT
+  PUBLISHED
+  ARCHIVED
+}
+
+model User {
+  id String @id @default(cuid())
+  email String @unique
+  username String @unique
+  password String   //devra etre hashé
+  role Role @default(VISITOR)
+  displayName String?
+  avatarUrl String?
+  bio String?
+  isActive Boolean @default(true)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  //relations
+  posts Post[]
+  comments Comment[]
+  likes Like[]
+  savedPosts SavedPost[]
+
+  @@map("users")
+}
+
+//table categories
+model Category {
+  id String @id @default(cuid())
+  name String @unique
+  slug String @unique
+  description String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  //relations
+  posts PostCategory[]
+
+  @@map("categories")
+}
+
+//models Tags
+model Tag{
+  id String @id @default(cuid())
+  name String @unique
+  slug String @unique
+
+  //relations
+  posts PostTag[]
+
+  @@map("tags")
+}
+
+//models pour les publications
+model Post{
+  id String @id @default(cuid())
+  title String
+  slug String @unique
+  excerpt String?
+  content String
+  region String?
+  period String?
+  status Status @default(DRAFT)
+  coverIndex Int @default(0)   //photo de couverture
+  viewsCount Int @default(0)
+  createdAt DateTime @default(now())
+  publishedAt DateTime?
+
+  //relations
+  authorId String
+  author User @relation(fields: [authorId], references: [id])
+  categories PostCategory[]
+  photos Photo[]
+  comments Comment[]
+  likes Like[]
+  savedBy SavedPost[]
+  tags PostTag[]
+
+  @@map("posts")
+}
+
+//model pour les photos
+model Photo {
+  id String @id @default(cuid())
+  filename    String                         // Nom du fichier sur le serveur
+  path        String                         // Chemin relatif ex: /uploads/posts/xxx.webp
+  alt         String?                        // Texte alternatif (accessibilité)
+  caption     String?                        // Légende affichée sous la photo
+  width       Int?
+  height      Int?
+  size        Int?                           // Taille en bytes
+  order       Int      @default(0)           // Ordre d'affichage dans la galerie
+
+  createdAt   DateTime @default(now())
+
+  // Relations
+  postId      String
+  post        Post     @relation(fields: [postId], references: [id], onDelete: Cascade)
+
+  // Crédits
+  photographerName  String?
+  modelName         String?
+
+  @@map("photos")
+
+}
+
+//model des commentaires
+model Comment {
+  id String @id @default(cuid())
+  content String
+  isApproved Boolean @default(false)
+  isDeleted Boolean @default(false)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  //relations
+  postId String
+  post Post @relation(fields: [postId], references: [id], onDelete: Cascade)
+  authorId String
+  author User @relation(fields:[authorId], references: [id])
+
+  //reponses au commenaires
+  parentId String?
+  parent Comment? @relation("CommentReplies", fields: [parentId], references: [id], onDelete: Cascade)
+  replies Comment[] @relation("CommentReplies")
+}
+
+//models likes
+model Like {
+  id String @id @default(cuid())
+  createdAt DateTime @default(now())
+
+  //relations
+  postId String
+  post Post @relation(fields: [postId], references: [id])
+  authorId String
+  author User @relation(fields: [authorId], references: [id])
+
+  @@unique([postId, authorId]) // Un utilisateur ne peut liker un post qu'une seule fois
+  @@map("likes")
+}
+
+//publication sauvegardés: Posts favoris
+model SavedPost {
+  id String @id @default(cuid())
+  createdAt DateTime @default(now())
+
+  //relations
+  postId String
+  post Post @relation(fields: [postId], references: [id])
+  userId String
+  user User @relation(fields: [userId], references: [id])
+
+  @@unique([postId, userId]) // Un utilisateur ne peut sauvegarder un post qu'une seule fois
+  @@map("saved_posts")
+}
+
+// TABLES DE JOINTURE (Many-to-Many)
+// ─────────────────────────────────────────
+
+model PostCategory {
+  postId      String
+  post        Post     @relation(fields: [postId], references: [id], onDelete: Cascade)
+
+  categoryId  String
+  category    Category @relation(fields: [categoryId], references: [id], onDelete: Cascade)
+
+  @@id([postId, categoryId])
+  @@map("post_categories")
+}
+
+model PostTag {
+  postId  String
+  post    Post   @relation(fields: [postId], references: [id], onDelete: Cascade)
+
+  tagId   String
+  tag     Tag    @relation(fields: [tagId], references: [id], onDelete: Cascade)
+
+  @@id([postId, tagId])
+  @@map("post_tags")
+}
