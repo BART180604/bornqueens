@@ -1,19 +1,19 @@
 import { NextRequest,NextResponse } from "next/server";
-import { getCurrentUser,isContributor } from "@/app/lib/auth";
+import {getCurrentUser, isAdmin, isContributor} from "@/app/lib/auth";
 import { processAvatarImage,processPostImage, UploadResult,validateUpload,compressionSummary} from "@/app/lib/upload";
 
-
-async function POST(request:NextRequest){
+// @ le upload d'image
+export async function POST(request:NextRequest){
     try {
 
-        //recupéerer l'utilisateur connecté
+        //recuperate l'utilisateur connecté
         const user = getCurrentUser(request)
         if(!user){
             return NextResponse.json({
-                success:false,message:"Utilisateur non authrntifié"
+                success:false,message:"Utilisateur non authentifié"
             },{status:401})
         }
-        if(!isContributor(user)){
+        if(!isContributor(user) && !isAdmin(user)){
             return NextResponse.json({
                 success:false,message:"vous ne pouvez effectué cette action"
             },{status:403})
@@ -39,7 +39,7 @@ async function POST(request:NextRequest){
             },{status:400})
         }
 
-        //faire velidé chacun des fichiers uploader
+        //faire validé chacun des fichiers uploader
         const validationErrors = files.map(file=>validateUpload(file)).filter(Boolean)
 
         if(validationErrors.length>0){

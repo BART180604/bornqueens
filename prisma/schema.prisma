@@ -12,6 +12,7 @@ generator client {
 datasource db {
   provider = "postgresql"
 }
+
 enum Role {
   VISITOR
   CONTRIBUTOR
@@ -25,154 +26,155 @@ enum Status {
 }
 
 model User {
-  id String @id @default(cuid())
-  email String @unique
-  username String @unique
-  password String   //devra etre hashé
-  role Role @default(VISITOR)
+  id          String   @id @default(cuid())
+  email       String   @unique
+  username    String   @unique
+  password    String // devra etre hashé
+  role        Role     @default(VISITOR)
   displayName String?
-  avatarUrl String?
-  bio String?
-  isActive Boolean @default(true)
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  avatarUrl   String?
+  bio         String?
+  isActive    Boolean  @default(true)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
 
-  //relations
-  posts Post[]
-  comments Comment[]
-  likes Like[]
+  // relations
+  posts      Post[]
+  comments   Comment[]
+  likes      Like[]
   savedPosts SavedPost[]
 
+  //nom de la table en base de données
   @@map("users")
 }
 
-//table categories
+// table categories
 model Category {
-  id String @id @default(cuid())
-  name String @unique
-  slug String @unique
+  id          String   @id @default(cuid())
+  name        String   @unique
+  slug        String   @unique
   description String?
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
 
-  //relations
+  // relations
   posts PostCategory[]
 
   @@map("categories")
 }
 
-//models Tags
-model Tag{
-  id String @id @default(cuid())
+// models Tags
+model Tag {
+  id   String @id @default(cuid())
   name String @unique
   slug String @unique
 
-  //relations
+  // relations
   posts PostTag[]
 
   @@map("tags")
 }
 
-//models pour les publications
-model Post{
-  id String @id @default(cuid())
-  title String
-  slug String @unique
-  excerpt String?
-  content String
-  region String?
-  period String?
-  status Status @default(DRAFT)
-  coverIndex Int @default(0)   //photo de couverture
-  viewsCount Int @default(0)
-  createdAt DateTime @default(now())
+// models pour les publications
+model Post {
+  id          String    @id @default(cuid())
+  title       String
+  slug        String    @unique
+  excerpt     String?
+  content     String
+  region      String?
+  period      String?
+  status      Status    @default(DRAFT)
+  coverIndex  Int       @default(0) // photo de couverture
+  viewsCount  Int       @default(0)
+  createdAt   DateTime  @default(now())
   publishedAt DateTime?
 
-  //relations
-  authorId String
-  author User @relation(fields: [authorId], references: [id])
+  // relations
+  authorId   String //on spécifie la clé etrangère
+  author     User           @relation(fields: [authorId], references: [id])
   categories PostCategory[]
-  photos Photo[]
-  comments Comment[]
-  likes Like[]
-  savedBy SavedPost[]
-  tags PostTag[]
+  photos     Photo[]
+  comments   Comment[]
+  likes      Like[]
+  savedBy    SavedPost[]
+  tags       PostTag[]
 
   @@map("posts")
 }
 
-//model pour les photos
+// model pour les photos
 model Photo {
-  id String @id @default(cuid())
-  filename    String                         // Nom du fichier sur le serveur
-  path        String                         // Chemin relatif ex: /uploads/posts/xxx.webp
-  alt         String?                        // Texte alternatif (accessibilité)
-  caption     String?                        // Légende affichée sous la photo
-  width       Int?
-  height      Int?
-  size        Int?                           // Taille en bytes
-  order       Int      @default(0)           // Ordre d'affichage dans la galerie
+  id        String  @id @default(cuid())
+  filename  String // Nom du fichier sur le serveur
+  path      String // Chemin relatif ex: /uploads/posts/xxx.webp
+  thumbPath String
+  alt       String? // Texte alternatif (accessibilité)
+  caption   String? // Légende affichée sous la photo
+  width     Int?
+  height    Int?
+  size      Int? // Taille en bytes
+  order     Int     @default(0) // Ordre d'affichage dans la galerie
 
-  createdAt   DateTime @default(now())
+  createdAt DateTime @default(now())
 
   // Relations
-  postId      String
-  post        Post     @relation(fields: [postId], references: [id], onDelete: Cascade)
+  postId String
+  post   Post   @relation(fields: [postId], references: [id], onDelete: Cascade)
 
   // Crédits
-  photographerName  String?
-  modelName         String?
+  photographerName String?
+  modelName        String?
 
   @@map("photos")
-
 }
 
-//model des commentaires
+// model des commentaires
 model Comment {
-  id String @id @default(cuid())
-  content String
-  isApproved Boolean @default(false)
-  isDeleted Boolean @default(false)
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  id         String   @id @default(cuid())
+  content    String
+  isApproved Boolean  @default(false)
+  isDeleted  Boolean  @default(false)
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
 
-  //relations
-  postId String
-  post Post @relation(fields: [postId], references: [id], onDelete: Cascade)
+  // relations
+  postId   String
+  post     Post   @relation(fields: [postId], references: [id], onDelete: Cascade)
   authorId String
-  author User @relation(fields:[authorId], references: [id])
+  author   User   @relation(fields: [authorId], references: [id])
 
-  //reponses au commenaires
+  // reponses au commenaires
   parentId String?
-  parent Comment? @relation("CommentReplies", fields: [parentId], references: [id], onDelete: Cascade)
-  replies Comment[] @relation("CommentReplies")
+  parent   Comment?  @relation("CommentReplies", fields: [parentId], references: [id], onDelete: Cascade)
+  replies  Comment[] @relation("CommentReplies")
 }
 
-//models likes
+// models likes
 model Like {
-  id String @id @default(cuid())
+  id        String   @id @default(cuid())
   createdAt DateTime @default(now())
 
-  //relations
-  postId String
-  post Post @relation(fields: [postId], references: [id])
+  // relations
+  postId   String
+  post     Post   @relation(fields: [postId], references: [id], onDelete: Cascade)
   authorId String
-  author User @relation(fields: [authorId], references: [id])
+  author   User   @relation(fields: [authorId], references: [id])
 
-  @@unique([postId, authorId]) // Un utilisateur ne peut liker un post qu'une seule fois
+  @@unique([postId, authorId]) // Un utilisateur ne peut liker un post qu'une seule fois. Sera créer une colonne spécial:post_like
   @@map("likes")
 }
 
-//publication sauvegardés: Posts favoris
+// publication sauvegardés: Posts favoris
 model SavedPost {
-  id String @id @default(cuid())
+  id        String   @id @default(cuid())
   createdAt DateTime @default(now())
 
-  //relations
+  // relations
   postId String
-  post Post @relation(fields: [postId], references: [id])
+  post   Post   @relation(fields: [postId], references: [id], onDelete: Cascade)
   userId String
-  user User @relation(fields: [userId], references: [id])
+  user   User   @relation(fields: [userId], references: [id])
 
   @@unique([postId, userId]) // Un utilisateur ne peut sauvegarder un post qu'une seule fois
   @@map("saved_posts")
@@ -182,22 +184,22 @@ model SavedPost {
 // ─────────────────────────────────────────
 
 model PostCategory {
-  postId      String
-  post        Post     @relation(fields: [postId], references: [id], onDelete: Cascade)
+  postId String
+  post   Post   @relation(fields: [postId], references: [id], onDelete: Cascade)
 
-  categoryId  String
-  category    Category @relation(fields: [categoryId], references: [id], onDelete: Cascade)
+  categoryId String
+  category   Category @relation(fields: [categoryId], references: [id], onDelete: Cascade)
 
   @@id([postId, categoryId])
   @@map("post_categories")
 }
 
 model PostTag {
-  postId  String
-  post    Post   @relation(fields: [postId], references: [id], onDelete: Cascade)
+  postId String
+  post   Post   @relation(fields: [postId], references: [id], onDelete: Cascade)
 
-  tagId   String
-  tag     Tag    @relation(fields: [tagId], references: [id], onDelete: Cascade)
+  tagId String
+  tag   Tag    @relation(fields: [tagId], references: [id], onDelete: Cascade)
 
   @@id([postId, tagId])
   @@map("post_tags")

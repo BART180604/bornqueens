@@ -6,12 +6,9 @@ const nextConfig: NextConfig = {
   images: {
     // Autoriser les images locales depuis /public/uploads
     // Next.js optimise automatiquement les images via <Image />
-    localPatterns: [
-      {
-        pathname: '/uploads/**',
-        search: '',
-      },
-    ],
+
+
+    unoptimized:true,
 
     // Formats de sortie — WebP en priorité, AVIF si supporté
     formats: ['image/avif', 'image/webp'],

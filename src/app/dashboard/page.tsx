@@ -3,11 +3,41 @@
 import Link   from 'next/link'
 import Image  from 'next/image'
 import { prisma } from '@/app/lib/prisma'
+import {Status} from "@/generated/prisma";
 
 // ─────────────────────────────────────────
 // DATA FETCHING (Server Component)
 // ─────────────────────────────────────────
+interface PostProps{
+  status: Status;
+  id: string;
+  title: string;
+  slug: string;
+  createdAt: Date;
+  publishedAt: Date | null;
+  photos: {
 
+    path: string;
+  }[];
+  _count: {
+    comments: number;
+    likes: number;
+  };
+}
+interface TopPost{
+
+  id: string
+  title: string
+  slug: string
+  photos: {
+    path: string
+  }[]
+  _count: {
+    comments: number
+    likes: number
+  }
+  viewsCount: number;
+}
 async function getDashboardStats() {
   const [
     totalPosts,
@@ -217,16 +247,7 @@ export default async function DashboardPage() {
                     fontSize: '0.825rem',
                     transition: 'all 0.2s var(--ease-elegant)',
                   }}
-                  onMouseEnter={e => {
-                    const el = e.currentTarget as HTMLAnchorElement
-                    el.style.borderColor = action.color
-                    el.style.transform = 'translateX(4px)'
-                  }}
-                  onMouseLeave={e => {
-                    const el = e.currentTarget as HTMLAnchorElement
-                    el.style.borderColor = 'rgba(0,0,0,0.06)'
-                    el.style.transform = 'translateX(0)'
-                  }}
+
                 >
                   <span style={{ color: action.color, fontSize: '1rem', width: '20px', textAlign: 'center' }}>
                     {action.icon}
@@ -298,7 +319,7 @@ function SectionHeader({ title, action }: { title: string; action?: { href: stri
   )
 }
 
-function PostRow({ post }: { post: any }) {
+function PostRow({ post }: Readonly<{ post: PostProps }>) {
   const STATUS_STYLES: Record<string, { bg: string; color: string; label: string }> = {
     PUBLISHED: { bg: '#D1FAE5', color: '#065F46', label: 'Publié' },
     DRAFT:     { bg: '#FEF3C7', color: '#92400E', label: 'Brouillon' },
@@ -318,7 +339,7 @@ function PostRow({ post }: { post: any }) {
       <div style={{ width: '48px', height: '48px', flexShrink: 0, overflow: 'hidden', background: '#F3F4F6' }}>
         {post.photos[0] && (
           <Image
-            src={post.photos[0].thumbPath || post.photos[0].path}
+            src={ post.photos[0].path}
             alt={post.title}
             width={48} height={48}
             style={{ objectFit: 'cover', width: '100%', height: '100%' }}
@@ -366,7 +387,7 @@ function PostRow({ post }: { post: any }) {
   )
 }
 
-function TopPostRow({ post, rank }: { post: any; rank: number }) {
+function TopPostRow({ post, rank }: Readonly<{ post: TopPost; rank: number }>) {
   return (
     <div style={{
       display: 'flex', alignItems: 'center', gap: '0.875rem',
@@ -383,7 +404,7 @@ function TopPostRow({ post, rank }: { post: any; rank: number }) {
       </span>
       <div style={{ width: '40px', height: '40px', flexShrink: 0, overflow: 'hidden' }}>
         {post.photos[0] && (
-          <Image src={post.photos[0].thumbPath || post.photos[0].path} alt="" width={40} height={40}
+          <Image src={ post.photos[0].path} alt="" width={40} height={40}
             style={{ objectFit: 'cover', width: '100%', height: '100%' }} />
         )}
       </div>
@@ -392,7 +413,7 @@ function TopPostRow({ post, rank }: { post: any; rank: number }) {
           {post.title}
         </p>
         <p style={{ fontFamily: 'var(--font-body)', fontSize: '0.65rem', color: 'var(--clr-gris)' }}>
-          ♥ {post._count.likes} · {post.viewCount} vues
+          ♥ {post._count.likes} · {post.viewsCount} vues
         </p>
       </div>
     </div>

@@ -57,7 +57,7 @@ export async function POST(request:NextRequest) {
 
     const {email, username, password,displayName}=body;
 
-    //2.1 rechercher de l'existance dun utlisateur:
+    //2.1 rechercher de l'existence dun utilisateur:
     const isExist = await prisma.user.findFirst({
         where: {
             OR : [
@@ -97,7 +97,7 @@ export async function POST(request:NextRequest) {
       }
     })
 
-    //2.4 génerer le token 
+    //2.4 générer le token
     const token = signToken({
         userId:user.id,
         username:user.username,

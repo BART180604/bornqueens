@@ -11,7 +11,7 @@ import { useAuth } from '@/app/hooks/useAuth'
 
 type FilterType = 'pending' | 'approved' | 'all'
 
-interface Comment {
+export interface Comment {
   id:         string
   content:    string
   isApproved: boolean
@@ -67,18 +67,18 @@ export default function CommentsPage() {
       headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
       body:    JSON.stringify({ approved }),
     })
-    setComments(prev => prev.filter(c => c.id !== id))
+    // Recharger depuis l'API
+    await fetchComments()
     setSelected(prev => { const s = new Set(prev); s.delete(id); return s })
   }
 
-  // ── Supprimer un commentaire ──
   async function deleteComment(id: string) {
     if (!confirm('Supprimer définitivement ce commentaire ?')) return
     await fetch(`/api/comments/${id}`, {
       method:  'DELETE',
       headers: { Authorization: `Bearer ${token}` },
     })
-    setComments(prev => prev.filter(c => c.id !== id))
+    await fetchComments()
   }
 
   // ── Actions en masse ──

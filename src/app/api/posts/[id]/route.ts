@@ -2,12 +2,11 @@ import { NextRequest,NextResponse } from "next/server";
 import { getCurrentUser,isAdmin } from "@/app/lib/auth";
 import {prisma} from "@/app/lib/prisma"
 import { deleteImage } from "@/app/lib/upload";
-import { Prisma} from "@/generated/prisma";
+import { Prisma,Status} from "@/generated/prisma";
 import slugify from "slugify";
-import { Status } from '../../../../generated/prisma/enums';
 
 
-type Params = {params:{id:string}}
+type Params = {params:Promise<{id:string}>}
 
 // ── Sélecteur complet réutilisable ──
 const fullPostSelect = Prisma.validator<Prisma.PostSelect>()({
@@ -44,7 +43,7 @@ const fullPostSelect = Prisma.validator<Prisma.PostSelect>()({
     select: { likes: true, comments: true }
   }
 })
-//recupérer un post   @GET id
+//récupérer un post   @GET id
 
 export async function GET(request:NextRequest,{params}:Params){
     try {
@@ -52,11 +51,11 @@ export async function GET(request:NextRequest,{params}:Params){
         const user = await getCurrentUser(request)
 
         //recupérer l'id du post depuis les parametre url
-        const{ id } = params
+        const{ id:postId } = await params
         const post = await prisma.post.findFirst({
             where:{
                 OR:[
-                    {id},{slug:id}
+                    {id:postId},{slug:postId}
                 ],
                 ...(user && isAdmin(user)? {} : {status:"PUBLISHED"})
                 
@@ -82,14 +81,14 @@ export async function GET(request:NextRequest,{params}:Params){
             where:{postId:post.id,isApproved:true, isDeleted:false,parentId:null},
             orderBy:{createdAt:"desc"},
             include:{
-                author:{select:{id:true,username:true,displayName:true,avatar:true}},
+                author:{select:{id:true,username:true,displayName:true,avatarUrl:true}},
                 replies:{
                     where:{
                         isApproved:true,isDeleted:false
                     },
                     orderBy:{createdAt:"asc"},
                     include:{
-                        author:{select:{id:true,username:true,displayName:true,avatar:true}}
+                        author:{select:{id:true,username:true,displayName:true,avatarUrl:true}}
                     }
                 }
             }
@@ -118,15 +117,15 @@ export async function GET(request:NextRequest,{params}:Params){
 
 export async function PUT(request:NextRequest,{params}:Params){
     try {
-        // recupérer l'utilsateur
-        const user = await getCurrentUser(request)
+        // récupérer l'utilsateur
+        const user = getCurrentUser(request)
         if(!user){
             return NextResponse.json({success:false, message:"Utilisateur non authentifié"},{status:401})
         }
 
-        const {id} = params
+        const {id:postId} = await params
         const post = await prisma.post.findFirst({
-            where: {id:id}
+            where: {id:postId}
         })
         if(!post) {
             return NextResponse.json({
@@ -191,6 +190,34 @@ export async function PUT(request:NextRequest,{params}:Params){
             )
         }
 
+        // ── Gérer la suppression des photos retirées ──
+        if (body.photos !== undefined) {
+            const incomingFilenames = (body.photos as { filename: string }[]).map(p => p.filename)
+
+            const photosToDelete = await prisma.photo.findMany({
+                where: {
+                    postId: post.id,
+                    filename: { notIn: incomingFilenames }
+                }
+            })
+
+            if (photosToDelete.length > 0) {
+                // Supprimer les fichiers physiques
+                await Promise.all(
+                    photosToDelete.flatMap(p => [
+                        deleteImage(p.path),
+                        deleteImage(p.thumbPath),
+                    ])
+                )
+                // Supprimer les lignes en base
+                await prisma.photo.deleteMany({
+                    where: {
+                        id: { in: photosToDelete.map(p => p.id) }
+                    }
+                })
+            }
+        }
+
         // Mise à jour via transaction
         const updated = await prisma.$transaction(async(tx)=>{
             //recréé les relations categories tags si fourni
@@ -251,17 +278,18 @@ export async function PUT(request:NextRequest,{params}:Params){
 
 export async function DELETE(request:NextRequest,{params}:Params){
     try {
-        //rcupérer le requerent
-        const user = await getCurrentUser(request)
+        //récupérer le requerent
+        const user = getCurrentUser(request)
         if(!user){
             return NextResponse.json({
                 success:false, message:"Utilisateur non authentifié"
             },{status:401})
         }
         //récupérer le post
+        const {id:postId}=await params
         const post = await prisma.post.findUnique({
             where:{
-                id:params.id
+                id:postId
             },
             include:{photos:true}
         })

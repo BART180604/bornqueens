@@ -2,14 +2,16 @@
 
 import { useState, useEffect, useCallback } from 'react'
 import { useAuth } from "@/app/hooks/useAuth"
+import {Status} from "@/generated/prisma";
 
-interface Post {
+export interface Post {
   id: string
   title: string
   slug: string
   excerpt: string | null
   region: string | null
   period: string | null
+  status: Status
   coverIndex: number
   viewCount: number
   publishedAt: string

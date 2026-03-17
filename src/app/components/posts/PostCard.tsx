@@ -14,16 +14,16 @@ export interface PostCardProps {
     region: string | null
     period: string | null
     coverIndex: number
-    publishedAt: string
+    publishedAt: string | null
     photos: { path: string; thumbPath: string; alt: string | null; order: number }[]
-    categories: { name: string; slug: string; color: string | null }[]
+    categories: { name: string; slug: string }[]
     likesCount: number
     commentsCount: number
   }
   featured?: boolean  // carte agrandie dans la grille
 }
 
-export default function PostCard({ post, featured = false }: PostCardProps) {
+export default function PostCard({ post, featured = false }: Readonly<PostCardProps>) {
   const coverPhoto = post.photos[post.coverIndex] || post.photos[0]
   const photoCount = post.photos.length
 
@@ -53,12 +53,12 @@ export default function PostCard({ post, featured = false }: PostCardProps) {
         style={{ height: featured ? '520px' : '280px', position: 'relative' }}
       >
         {coverPhoto ? (
-          <Image
+          <img
             src={coverPhoto.thumbPath || coverPhoto.path}
             alt={coverPhoto.alt || post.title}
-            fill
+
             sizes="(max-width: 600px) 100vw, (max-width: 900px) 50vw, 33vw"
-            style={{ objectFit: 'cover' }}
+            style={{ width:'100%', height:'100%', objectFit:'cover' }}
           />
         ) : (
           <div style={{ width: '100%', height: '100%', background: 'var(--clr-deep)' }} />
@@ -85,7 +85,7 @@ export default function PostCard({ post, featured = false }: PostCardProps) {
               className="label-category"
               style={{
                 color: 'white',
-                background: post.categories[0].color || 'var(--clr-bordeaux)',
+                background:  'var(--clr-bordeaux)',
                 padding: '0.2rem 0.6rem',
                 fontSize: '0.6rem',
               }}

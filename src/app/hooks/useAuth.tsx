@@ -1,7 +1,7 @@
 'use client'
-import { useEffect, createContext, useState, useContext, ReactNode } from "react";
+import {useEffect, createContext, useState, useContext, ReactNode, useMemo} from "react";
 
-// Definir les interface 
+// Définir les interface
 
 interface User {
   id: string,
@@ -30,6 +30,7 @@ interface AuthContextType {
   login: (email: string, password: string) => Promise<{ success: boolean, message: string }>
   register: (data: Register) => Promise<{ success: boolean, message: string,field?:string }>
   logout: () => Promise<void>
+  refreshUser: () => Promise<void>
 }
 
 // créer le context
@@ -38,26 +39,37 @@ const AuthContext = createContext<AuthContextType | null>(null)
 
 // créer le provider
 
-export function AuthProvider({ children }: { children: ReactNode }) {
+export function AuthProvider({ children }: Readonly<{ children: ReactNode }>) {
 
   const [user, setUser] = useState<User | null>(null)
   const [isLoading, setIsLoading] = useState<boolean>(true)
   const [token, setToken] = useState<string | null>(null)
 
-  // recuper le token et lutilisateur depuis le localStorage
+  const value = useMemo(() => ({
+    user,
+    token,
+    isLoading,
+    isAuthenticated: !!user,
+    isAdmin: user?.role === "ADMIN",
+    login,
+    register,
+    logout,
+    refreshUser,
+  }), [user, token, isLoading])
+  // recuperate le token et l'utilisateur depuis le localStorage
 
   useEffect(() => {
     const storedToken = localStorage.getItem("auth_token")
 
     if (storedToken) {
       setToken(storedToken)
-      fetchCurrentUser(storedToken)
+      void fetchCurrentUser(storedToken)
     } else {
       setIsLoading(false)
     }
   }, [])
 
-  // recuperer l'utilisateur connecté
+  // récupérer l'utilisateur connecté
 
   async function fetchCurrentUser(authToken: string) {
     try {
@@ -69,7 +81,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         const data = await res.json()
         setUser(data.user)
       } else {
-        // token invalide ou expiré on remove 
+        // token invalide ou expiré on remove
         localStorage.removeItem("auth_token")
         setToken(null)
       }
@@ -157,18 +169,16 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     }
   }
 
+  // 3. Ajouter la fonction entre logout et le return :
+  async function refreshUser() {
+    const storedToken = token || localStorage.getItem("auth_token")
+    if (!storedToken) return
+    await fetchCurrentUser(storedToken)
+  }
+
   return (
     <AuthContext.Provider
-      value={{
-        user,
-        token,
-        isLoading,
-        isAuthenticated: !!user,
-        isAdmin: user?.role === 'ADMIN',
-        login,
-        register,
-        logout,
-      }}
+      value={value}
     >
       {children}
     </AuthContext.Provider>

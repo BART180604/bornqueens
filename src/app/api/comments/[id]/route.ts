@@ -1,20 +1,22 @@
 import { NextRequest,NextResponse } from "next/server";
 import { getCurrentUser, isAdmin } from "@/app/lib/auth";
 import { prisma } from "@/app/lib/prisma";
-import { selectAuthor } from "../../posts/[id]/comment/route";
+import { selectAuthor } from "@/app/api/posts/[id]/comments/route";
 
-type Params = { params: { id: string } }
+type Params = { params: Promise<{ id: string }> }
 
 //PUT modifier un commentaire
 
 export async function PUT(request:NextRequest, {params}:Params){
     try {
-        // recuper le requérent
-        const user = await getCurrentUser(request)
-        if(!user){return NextResponse.json({success:false, message:"utilisateur non authentifié"}),{status:401}}
-        //recupérer le comentaire en question
+        // recuperate le requérent
+        const user = getCurrentUser(request)
+        if(!user){return NextResponse.json({success:false, message:"utilisateur non authentifié"},{status:401})}
+        //récupérer le commentaire en question
+
+        const {id:commentId} = await params
         const comment = await prisma.comment.findFirst({
-            where:{id:params.id}
+            where:{id:commentId}
 
         })
         if(!comment){
@@ -35,7 +37,7 @@ export async function PUT(request:NextRequest, {params}:Params){
 
         //après modif repassé en modération sauf admin
         const updated= await prisma.comment.update({
-            where:{id:params.id},
+            where:{id:comment.id},
             data:{
                 content: content.trim(),
                 isApproved:isAdmin(user),
@@ -56,15 +58,15 @@ export async function PUT(request:NextRequest, {params}:Params){
 }
 
 
-//delete comment
+//delete comments
 export async function DELETE(request: NextRequest, { params }: Params) {
   try {
     const user = getCurrentUser(request)
     if (!user) {
       return NextResponse.json({ success: false, message: 'Non authentifié' }, { status: 401 })
     }
-
-    const comment = await prisma.comment.findUnique({ where: { id: params.id } })
+    const {id:commentId} = await params
+    const comment = await prisma.comment.findUnique({ where: { id: commentId } })
     if (!comment || comment.isDeleted) {
       return NextResponse.json({ success: false, message: 'Commentaire introuvable' }, { status: 404 })
     }
@@ -76,7 +78,7 @@ export async function DELETE(request: NextRequest, { params }: Params) {
 
     // Soft delete — on garde la ligne pour ne pas briser les réponses imbriquées
     await prisma.comment.update({
-      where: { id: params.id },
+      where: { id:commentId  },
       data:  { isDeleted: true, content: '[Commentaire supprimé]' }
     })
 

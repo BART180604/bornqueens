@@ -6,7 +6,7 @@ import { getCurrentUser } from '@/app/lib/auth'
 export async function GET(request:NextRequest){
     try {
         //1. extraire et verifier le token 
-        const authUser = getCurrentUser(request)
+        const authUser =  getCurrentUser(request)
         if(!authUser){
             return NextResponse.json({
                 success:false,
@@ -14,7 +14,7 @@ export async function GET(request:NextRequest){
 
             },{status:401})
         }
-        //recupérer les données depuis la base de donné
+        //récupérer les données depuis la base de donnée
         const user= await prisma.user.findUnique({
             where:{id:authUser.userId},
             select:{
@@ -44,6 +44,11 @@ export async function GET(request:NextRequest){
                 message:"Utilisateur introuvable"
             },{status:400})
         }
+        // 3.Ici, on retourne la réponse succès !
+        return NextResponse.json({
+            success: true,
+            user
+        })
     } catch (error) {
         console.error("[ME ERROR]", error)
         return NextResponse.json({

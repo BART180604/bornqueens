@@ -56,7 +56,7 @@ export async function POST(request:NextRequest) {
            
         )
 
-        if(!user || !user.isActive){
+        if(!user?.isActive){
             return NextResponse.json({
                 success:false, message: " Identifiants invalide"
             },{status:401})
@@ -71,14 +71,14 @@ export async function POST(request:NextRequest) {
         }
 
         //générer le token
-        const token = await signToken({
+        const token =  signToken({
             userId:user.id,
             email:user.email,
             username:user.username,
             role:user.role
         })
 
-        //préparer les données utilsateurs à renvoyer
+        //préparer les données utilisateurs à renvoyer
         const {password: _, ...userWithoutPassword } = user
         const response = NextResponse.json({
             success:true,

@@ -17,7 +17,7 @@ async function getFeaturedPosts() {
       region: true, period: true, coverIndex: true, publishedAt: true,
       photos: {
         orderBy: { order: 'asc' },
-        select: { path: true, alt: true, order: true },
+        select: { path: true,thumbPath:true, alt: true, order: true },
         take: 1,
       },
       categories: { select: { category: { select: { name: true, slug: true} } } },
@@ -294,7 +294,7 @@ export default async function Home() {
               >
                 <span style={{
                   width: '8px', height: '8px', borderRadius: '50%',
-                  background: cat.color || 'var(--clr-or)',
+                  background:  'var(--clr-or)',
                   flexShrink: 0,
                 }} />
                 {cat.name}

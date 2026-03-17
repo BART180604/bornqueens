@@ -2,7 +2,7 @@ import { NextRequest,NextResponse } from 'next/server';
 import { getCurrentUser, isAdmin } from '@/app/lib/auth';
 import {prisma} from "@/app/lib/prisma"
 
-type Params= {params:{id:string}}
+type Params= {params:Promise<{id:string}>}
 
 export async function PATCH(request:NextRequest,{params}:Params){
 
@@ -14,18 +14,18 @@ export async function PATCH(request:NextRequest,{params}:Params){
             },{status:403})
         }
 
-        const approved= await request.json()
+        const {approved}= await request.json()
         if (typeof approved !== 'boolean') {
             return NextResponse.json({ success: false, message: 'Champ "approved" (boolean) requis' }, { status: 400 })
         }
-
-        const comment = await prisma.comment.findUnique({ where: { id: params.id } })
+        const {id:commentId} = await params
+        const comment = await prisma.comment.findUnique({ where: { id: commentId } })
         if (!comment || comment.isDeleted) {
            return NextResponse.json({ success: false, message: 'Commentaire introuvable' }, { status: 404 })
         }
 
         const updated = await prisma.comment.update({
-          where: { id: params.id },
+          where: { id: comment.id },
           data:  { isApproved: approved },
           include: {
              author: { select: { id: true, username: true, displayName: true } },
@@ -48,16 +48,16 @@ export async function PATCH(request:NextRequest,{params}:Params){
 
 
 
-export async function GET_PENDING(request: NextRequest) {
+export async function GET(request: NextRequest) {
   try {
     const user = getCurrentUser(request)
-    if (!user || !isAdmin(user)) {
+    if (!user && !isAdmin(user)) {
       return NextResponse.json({ success: false, message: 'Accès refusé' }, { status: 403 })
     }
 
     const { searchParams } = new URL(request.url)
-    const page  = Math.max(1, parseInt(searchParams.get('page')  || '1'))
-    const limit = Math.min(50, parseInt(searchParams.get('limit') || '20'))
+    const page  = Math.max(1, Number.parseInt(searchParams.get('page')  || '1'))
+    const limit = Math.min(50, Number.parseInt(searchParams.get('limit') || '20'))
 
     const [comments, total] = await Promise.all([
       prisma.comment.findMany({
@@ -66,7 +66,7 @@ export async function GET_PENDING(request: NextRequest) {
         skip:    (page - 1) * limit,
         take:    limit,
         include: {
-          author: { select: { id: true, username: true, displayName: true, avatar: true } },
+          author: { select: { id: true, username: true, displayName: true, avatarUrl: true } },
           post:   { select: { id: true, title: true, slug: true } }
         }
       }),

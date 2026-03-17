@@ -133,7 +133,7 @@ export async function processPostImage(file: File): Promise<UploadResult> {
   return {
     filename,
     path: `/uploads/posts/${filename}.webp`,
-    thumbPath: `/uploads/posts/thumbs/${filename}.webp`,
+    thumbPath: `/uploads/posts/thumbnails/${filename}.webp`,
     width: fullInfo.width ?? 0,
     height: fullInfo.height ?? 0,
     size: fullInfo.size,

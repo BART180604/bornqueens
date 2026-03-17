@@ -1,4 +1,5 @@
 // src/app/lib/prisma.ts
+//Singleton Prisma Client (pattern anti-hot-reload)
 import 'dotenv/config'
 import { PrismaClient } from '@/generated/prisma'
 import { Pool } from 'pg'

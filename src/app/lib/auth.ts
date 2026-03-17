@@ -18,7 +18,7 @@ export interface JWTPayload {
 
 export interface AuthUser extends JWTPayload {}
 
-// Generer un token 
+// Générer un token
 
 export function signToken(payload:JWTPayload):string {
    return jwt.sign(payload,JWT_SECRET!, {
@@ -26,7 +26,7 @@ export function signToken(payload:JWTPayload):string {
   } as jwt.SignOptions)
 }
 
-//verifier et decode 
+//verifier et decode
 
 export function decodeToken(token : string ) : JWTPayload | null {
    try {
@@ -44,7 +44,7 @@ export function decodeToken(token : string ) : JWTPayload | null {
 export function extractToken(request: NextRequest): string | null {
   // Priorité 1 : Header Authorization: Bearer <token>
   const authHeader = request.headers.get('authorization')
-  if (authHeader && authHeader.startsWith('Bearer ')) {
+  if (authHeader?.startsWith('Bearer ')) {
     return authHeader.substring(7)
   }
 

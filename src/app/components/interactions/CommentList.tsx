@@ -43,12 +43,12 @@ function CommentItem({
   postId,
   depth = 0,
   onReplyAdded,
-}: {
-  comment:      Comment
-  postId:       string
-  depth?:       number
+}: Readonly<{
+  comment: Comment
+  postId: string
+  depth?: number
   onReplyAdded: (reply: Comment, parentId: string) => void
-}) {
+}>) {
   const { user, token, isAuthenticated } = useAuth()
   const [showReplyForm, setShowReplyForm] = useState(false)
   const [isEditing,     setIsEditing]     = useState(false)

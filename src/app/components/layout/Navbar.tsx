@@ -54,7 +54,7 @@ export default function Navbar() {
                   color: 'var(--clr-bordeaux)',
                   letterSpacing: '-0.02em',
                 }}>
-                  Born Queens
+                  Born Queen
                 </span>
                 <span style={{
                   fontFamily: 'var(--font-body)',
@@ -64,7 +64,7 @@ export default function Navbar() {
                   color: 'var(--clr-or)',
                   marginTop: '2px',
                 }}>
-                  Histoire & Tresses Africaines
+                  Tressée par l&apos;histoire
                 </span>
               </div>
             </Link>
@@ -108,32 +108,67 @@ export default function Navbar() {
             <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}
                  className="hidden-mobile">
               {isAuthenticated ? (
-                <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
-                  {isAdmin && (
-                    <Link href="/dashboard" className="btn-ghost" style={{ padding: '0.5rem 1.2rem' }}>
-                      <span>Dashboard</span>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
+                    {isAdmin && (
+                        <Link href="/dashboard" className="btn-ghost" style={{ padding: '0.5rem 1.2rem' }}>
+                          <span>Dashboard</span>
+                        </Link>
+                    )}
+
+                    {/* ← AJOUTER : avatar/lien profil */}
+                    <Link href="/me" style={{ textDecoration: 'none', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                      {user?.avatarUrl ? (
+                          <img
+                              src={user.avatarUrl}
+                              alt={user.username}
+                              style={{ width: '32px', height: '32px', borderRadius: '50%', objectFit: 'cover', border: '1.5px solid var(--clr-or)' }}
+                          />
+                      ) : (
+                          <div style={{
+                            width: '32px', height: '32px', borderRadius: '50%',
+                            background: 'var(--clr-bordeaux)',
+                            display: 'flex', alignItems: 'center', justifyContent: 'center',
+                            color: 'white', fontFamily: 'var(--font-display)', fontSize: '0.9rem',
+                            border: '1.5px solid var(--clr-or)',
+                          }}>
+                            {(user?.displayName || user?.username || '?')[0].toUpperCase()}
+                          </div>
+                      )}
+                      <span style={{
+                        fontFamily: 'var(--font-body)', fontSize: '0.75rem',
+                        color: pathname === '/me' ? 'var(--clr-bordeaux)' : 'var(--clr-gris)',
+                        letterSpacing: '0.05em',
+                      }}>
+        {user?.displayName || user?.username}
+
+
+                        {(user?.role === 'CONTRIBUTOR') && (
+                            <Link href="/studio" className="btn-ghost" style={{ padding: '0.5rem 1.2rem' }}>
+                              <span>Mon Studio</span>
+                            </Link>
+                        )}
+      </span>
                     </Link>
-                  )}
-                  <button
-                    onClick={logout}
-                    style={{
-                      background: 'none',
-                      border: 'none',
-                      cursor: 'pointer',
-                      fontFamily: 'var(--font-body)',
-                      fontSize: '0.75rem',
-                      color: 'var(--clr-gris)',
-                      letterSpacing: '0.08em',
-                    }}
-                  >
-                    Déconnexion
-                  </button>
-                </div>
+
+                    <button
+                        onClick={logout}
+                        style={{
+                          background: 'none', border: 'none', cursor: 'pointer',
+                          fontFamily: 'var(--font-body)', fontSize: '0.75rem',
+                          color: 'var(--clr-gris)', letterSpacing: '0.08em',
+                        }}
+                    >
+                      Déconnexion
+                    </button>
+                  </div>
               ) : (
-                <Link href="/login" className="btn-primary" style={{ padding: '0.6rem 1.5rem' }}>
-                  <span>Connexion</span>
-                </Link>
+                  <Link href="/login" className="btn-primary" style={{ padding: '0.6rem 1.5rem' }}>
+                    <span>Connexion</span>
+                  </Link>
               )}
+
+
+
             </div>
 
             {/* Burger mobile */}
@@ -202,11 +237,34 @@ export default function Navbar() {
               {link.label}
             </Link>
           ))}
-          {!isAuthenticated && (
-            <Link href="/login" className="btn-primary animate-fade-up" style={{ animationDelay: '0.4s' }}>
-              <span>Connexion</span>
-            </Link>
+          {isAuthenticated && (
+              <Link
+                  href="/me"
+                  onClick={closeMenu}
+                  style={{
+                    fontFamily: 'var(--font-display)', fontSize: '2.5rem',
+                    fontWeight: 300, color: 'var(--clr-bordeaux)', textDecoration: 'none',
+                  }}
+                  className="animate-fade-up"
+              >
+                Mon profil
+              </Link>
+
+
           )}
+          {isAuthenticated && (
+              <button
+                  onClick={() => { logout(); closeMenu() }}
+                  style={{
+                    background: 'none', border: 'none', cursor: 'pointer',
+                    fontFamily: 'var(--font-body)', fontSize: '0.875rem',
+                    color: 'var(--clr-gris)', letterSpacing: '0.08em',
+                  }}
+              >
+                Déconnexion
+              </button>
+          )}
+
         </div>
       )}
 

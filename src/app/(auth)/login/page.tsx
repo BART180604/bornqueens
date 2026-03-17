@@ -2,12 +2,12 @@
 // src/app/(auth)/login/page.tsx
 // Page de connexion
 
-import { useState, useEffect }   from 'react'
+import { useState, useEffect, Suspense } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
 import Link                       from 'next/link'
 import { useAuth }                from '@/app/hooks/useAuth'
 
-export default function LoginPage() {
+function LoginContent() {
   const router       = useRouter()
   const searchParams = useSearchParams()
   const { login, isAuthenticated, isLoading } = useAuth()
@@ -364,4 +364,12 @@ const inputStyle: React.CSSProperties = {
   outline: 'none',
   transition: 'border-color 0.2s',
   borderRadius: 0,
+}
+
+export default function LoginPage() {
+  return (
+      <Suspense>
+        <LoginContent />
+      </Suspense>
+  )
 }

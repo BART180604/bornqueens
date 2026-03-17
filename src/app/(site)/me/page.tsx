@@ -2,7 +2,7 @@
 // src/app/(site)/me/page.tsx
 // Page profil de l'utilisateur connecté
 
-import { useState, useEffect, useRef } from 'react'
+import React, { useState, useEffect, useRef } from 'react'
 import { useRouter }                    from 'next/navigation'
 import Link                             from 'next/link'
 import { useAuth }                      from '@/app/hooks/useAuth'
@@ -30,7 +30,7 @@ interface UserStats {
 
 export default function ProfilePage() {
   const router = useRouter()
-  const { user, token, isAuthenticated, isLoading, refreshUser } = useAuth()
+  const { user, token, isAuthenticated, isLoading,refreshUser} = useAuth()
 
   const [activeTab,   setActiveTab]   = useState<'infos' | 'password' | 'saved'>('infos')
   const [savedPosts,  setSavedPosts]  = useState<SavedPost[]>([])
@@ -50,12 +50,12 @@ export default function ProfilePage() {
   const [passMessage, setPassMessage] = useState<{ text: string; ok: boolean } | null>(null)
   const [passErrors,  setPassErrors]  = useState<Record<string, string>>({})
 
-  // Redirection si non connecté
+  // Redirection si non connectée
   useEffect(() => {
     if (!isLoading && !isAuthenticated) router.replace('/login?redirect=/me')
   }, [isLoading, isAuthenticated, router])
 
-  // Pré-remplir le formulaire dès que user est disponible
+  // Préremplir le formulaire dès que user est disponible
   useEffect(() => {
     if (user) {
       setInfoForm({

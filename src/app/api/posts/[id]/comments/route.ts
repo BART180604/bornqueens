@@ -2,23 +2,23 @@ import {NextRequest, NextResponse} from "next/server";
 import { getCurrentUser } from "@/app/lib/auth";
 import { prisma } from "@/app/lib/prisma";
 
-type Params = { params: { id: string } }
+type Params = { params: Promise<{ id: string }> }
 
 export const selectAuthor = {
     select:{id:true, username:true,displayName:true,avatarUrl:true}
 }
 
 //GET lister les commentaires d'un post
-export async function GET(request:NextRequest,{params}:Params) {
+export async function GET(request: NextRequest, { params }: Params) {
     
     try {
         const {searchParams} = new URL(request.url)
         //la pagination (ne pas récup'  tous les commentaires d'un coup)
-        const page = Math.max(1,parseInt(searchParams.get("page")|| "1"))
-        const limit = Math.min(50,parseInt(searchParams.get("limit")||"15"))
+        const page = Math.max(1, Number.parseInt(searchParams.get("page")|| "1"))
+        const limit = Math.min(50, Number.parseInt(searchParams.get("limit")||"15"))
         const skip = (page-1)*limit
 
-        const postId= params.id
+        const { id: postId } = await params
         //rechercher le post avec id ou slug
         const post = await prisma.post.findFirst({
             where:{
@@ -78,21 +78,23 @@ export async function GET(request:NextRequest,{params}:Params) {
     }
 }
 
-//POST creer un commentaire sur un post
-export async function POST(request:NextRequest,{params}:Params) {
+//POST créer un commentaire sur un post
+export async function POST(request: NextRequest, { params }: Params) {
     try {
         //Auth obligatoire pour commenter
-        const user = await getCurrentUser(request)
+        const user = getCurrentUser(request)
         if(!user){
             return NextResponse.json(
                 {
                     success:false, message:"Utilisateur non authentifié"
-                }
-            ),{status:401}
+                },{status:401}
+            )
         }
+
+        const { id: postId } = await params
         const post = await prisma.post.findFirst({
             where:{
-                OR:[{id:params.id},{slug:params.id}], status:"PUBLISHED"
+                OR:[{id:postId},{slug:postId}], status:"PUBLISHED"
             }
         })
         if(!post){
@@ -103,7 +105,7 @@ export async function POST(request:NextRequest,{params}:Params) {
 
         const body = await request.json()
         const {content,parentId} = body
-        //validation du contenue envoyé
+        //validation du contenu envoyé
         if(!content?.trim()){
             return NextResponse.json({success:false,message:"Le contenu du commentaire est requis"})
         }

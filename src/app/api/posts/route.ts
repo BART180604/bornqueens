@@ -3,7 +3,7 @@
 
 import { NextRequest, NextResponse } from 'next/server'
 import { prisma } from '@/app/lib/prisma'
-import { getCurrentUser, isContributor } from '@/app/lib/auth'
+import {getCurrentUser, isAdmin, isContributor} from '@/app/lib/auth'
 import slugify from 'slugify'
 
 export async function GET(request: NextRequest) {
@@ -11,8 +11,8 @@ export async function GET(request: NextRequest) {
     const { searchParams } = new URL(request.url)
 
     //Gérer la pagination
-    const page  = Math.max(1, parseInt(searchParams.get('page')  || '1'))
-    const limit = Math.min(50, parseInt(searchParams.get('limit') || '12'))
+    const page  = Math.max(1, Number.parseInt(searchParams.get('page')  || '1'))
+    const limit = Math.min(50, Number.parseInt(searchParams.get('limit') || '12'))
     const skip  = (page - 1) * limit
 
     const category = searchParams.get('category')
@@ -21,13 +21,13 @@ export async function GET(request: NextRequest) {
     const status   = searchParams.get('status')
     const authorId = searchParams.get('author')
 
-    //on réupère l'utilisateur connecté
+    //on récupère l'utilisateur connecté
     const currentUser = getCurrentUser(request)
 
-    //protection contre la mnipulation des status par un nom admin
+    //protection contre la manipulation des status par un nom admin
     const requestedStatus = status && currentUser?.role === 'ADMIN' ? status : 'PUBLISHED'
 
-    //on créé un objet personnalisé where pour la requete prisma
+    // créé un objet personnalisé where pour la requête prisma
     const where: Record<string, unknown> = {
       status: requestedStatus,
       ...(authorId && { authorId }),
@@ -50,13 +50,13 @@ export async function GET(request: NextRequest) {
         select: {
           id: true, title: true, slug: true, excerpt: true,
           region: true, period: true, coverIndex: true,
-          viewCount: true, publishedAt: true,
-          author: { select: { id: true, username: true, displayName: true, avatar: true } },
+          viewsCount: true, publishedAt: true,
+          author: { select: { id: true, username: true, displayName: true, avatarUrl: true } },
           photos: {
             orderBy: { order: 'asc' },
             select: { id: true, path: true, thumbPath: true, alt: true, order: true }
           },
-          categories: { select: { category: { select: { id: true, name: true, slug: true, color: true } } } },
+          categories: { select: { category: { select: { id: true, name: true, slug: true } } } },
           tags:       { select: { tag:      { select: { id: true, name: true, slug: true } } } },
           _count: { select: { likes: true, comments: true } }
         }
@@ -93,7 +93,7 @@ export async function POST(request: NextRequest) {
   try {
     //on récupère l'utilisateur connecté
     const user = getCurrentUser(request)
-    if (!user || !isContributor(user)) {
+    if (!user || (!isContributor(user) && !isAdmin(user))) {
       return NextResponse.json({ success: false, message: 'Accès refusé' }, { status: 403 })
     }
 
@@ -162,7 +162,7 @@ export async function POST(request: NextRequest) {
         photos:     { orderBy: { order: 'asc' } },
         categories: { include: { category: true } },
         tags:       { include: { tag: true } },
-        author:     { select: { id: true, username: true, displayName: true, avatar: true } },
+        author:     { select: { id: true, username: true, displayName: true, avatarUrl: true } },
       }
     })
 
