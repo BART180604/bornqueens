@@ -1,6 +1,8 @@
+
+
 // src/app/dashboard/posts/page.tsx
 // Liste de toutes les publications — tableau admin avec actions
-
+export const dynamic = 'force-dynamic'
 import Link   from 'next/link'
 import Image  from 'next/image'
 import { prisma } from '@/app/lib/prisma'

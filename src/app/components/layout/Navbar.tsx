@@ -223,6 +223,7 @@ export default function Navbar() {
           {navLinks.map((link, i) => (
             <Link
               key={link.href}
+              onClick={closeMenu}
               href={link.href}
               style={{
                 fontFamily: 'var(--font-display)',

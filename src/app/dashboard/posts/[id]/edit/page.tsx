@@ -1,3 +1,5 @@
+export const dynamic = 'force-dynamic'
+
 
 // src/app/dashboard/posts/[id]/edit/page.tsx
 // Page d'édition d'une publication existante

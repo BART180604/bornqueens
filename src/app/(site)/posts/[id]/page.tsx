@@ -1,3 +1,5 @@
+export const dynamic = 'force-dynamic'
+
 // src/app/(site)/posts/[id]/page.tsx
 // Page de détail d'une publication — layout éditorial complet
 

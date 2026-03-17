@@ -1,6 +1,8 @@
+
+
 // src/app/(site)/contributors/page.tsx
 // Page contributeurs — équipe active + appel à rejoindre
-
+export const dynamic = 'force-dynamic'
 import { Metadata }  from 'next'
 import Link          from 'next/link'
 import { prisma }    from '@/app/lib/prisma'

@@ -1,3 +1,5 @@
+export const dynamic = 'force-dynamic'
+
 // src/app/dashboard/page.tsx
 // Vue d'ensemble — statistiques + publications récentes + commentaires en attente
 import Link   from 'next/link'

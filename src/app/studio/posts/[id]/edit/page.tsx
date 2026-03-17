@@ -1,3 +1,5 @@
+export const dynamic = 'force-dynamic'
+
 // src/app/studio/posts/[id]/edit/page.tsx
 import { notFound } from 'next/navigation'
 import { prisma }   from '@/app/lib/prisma'

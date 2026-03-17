@@ -1,3 +1,5 @@
+export const dynamic = 'force-dynamic'
+
 // src/app/(site)/posts/page.tsx
 // Page galerie — liste complète des publications
 // Filtres : catégorie, tag, recherche, région

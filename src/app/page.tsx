@@ -1,3 +1,5 @@
+export const dynamic = 'force-dynamic'
+
 // src/app/(site)/page.tsx
 // Page d'accueil — Grille immersive + Hero éditorial
 
