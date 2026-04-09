@@ -3,10 +3,10 @@ import { getCurrentUser,isAdmin } from "@/app/lib/auth";
 
 //les routes qui necessitent d'etre protéger
 
-const AUTH_ROUTES = ["/dashboard"]
+const AUTH_ROUTES = ["/dashboard", "/studio"]
 const ADMIN_ROUTES = ["/dashboard"]
 
-export function Middleware(request:NextRequest) {
+export function middleware(request:NextRequest) {
     const {pathname} = request.nextUrl
 
     //verifier si la route est proteger
@@ -37,5 +37,5 @@ export function Middleware(request:NextRequest) {
 }
 export const config = {
   // Appliquer le middleware uniquement sur ces chemins
-  matcher: ['/dashboard/:path*'],
+  matcher: ['/dashboard/:path*', '/studio/:path*'],
 }

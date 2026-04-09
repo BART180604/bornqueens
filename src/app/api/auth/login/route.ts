@@ -89,7 +89,7 @@ export async function POST(request:NextRequest) {
         
         response.cookies.set('auth_token', token ,{
             httpOnly:true,
-            secure:process.env.NODE_ENV==="development",
+            secure:process.env.NODE_ENV !== "development",
             sameSite: "lax",
             maxAge: 60 * 60 * 24 * 7,
             path: '/',

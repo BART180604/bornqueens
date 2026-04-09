@@ -24,8 +24,15 @@ export async function GET(request: NextRequest) {
     //on récupère l'utilisateur connecté
     const currentUser = getCurrentUser(request)
 
-    //protection contre la manipulation des status par un nom admin
-    const requestedStatus = status && currentUser?.role === 'ADMIN' ? status : 'PUBLISHED'
+    // Détermination du statut à afficher : par défaut PUBLISHED
+    // Un Admin peut voir n'importe quel statut.
+    // Un contributeur peut voir ses propres brouillons/archives s'il filtre par son propre authorId.
+    let requestedStatus = 'PUBLISHED'
+    if (status) {
+      if (isAdmin(currentUser) || (isContributor(currentUser) && authorId === currentUser?.userId)) {
+        requestedStatus = status
+      }
+    }
 
     // créé un objet personnalisé where pour la requête prisma
     const where: Record<string, unknown> = {
