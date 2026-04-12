@@ -38,7 +38,7 @@ export default function AboutPage() {
                         letterSpacing: '-0.02em',
                     }}>
                         Born<br />
-                        <span style={{ color: 'var(--clr-bordeaux)' }}>Queen</span>
+                        <span style={{ color: 'var(--clr-bordeaux)' }}>Queens</span>
                     </h1>
                     <p style={{
                         fontFamily:   'var(--font-accent)',
