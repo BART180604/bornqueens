@@ -54,7 +54,7 @@ export default function Navbar() {
                   color: 'var(--clr-bordeaux)',
                   letterSpacing: '-0.02em',
                 }}>
-                  Born Queen
+                  Born Queens
                 </span>
                 <span style={{
                   fontFamily: 'var(--font-body)',
